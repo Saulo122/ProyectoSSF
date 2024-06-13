@@ -1,48 +1,13 @@
-/*  
- *  --[Ev_v30_02] - Reading PIR sensor 
- *  
- *  Explanation: This example shows how the PIR sensor works in SOCKET_1. 
- *  
- *  Copyright (C) 2016 Libelium Comunicaciones Distribuidas S.L. 
- *  http://www.libelium.com 
- *  
- *  This program is free software: you can redistribute it and/or modify 
- *  it under the terms of the GNU General Public License as published by 
- *  the Free Software Foundation, either version 3 of the License, or 
- *  (at your option) any later version. 
- *  
- *  This program is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- *  GNU General Public License for more details. 
- *  
- *  You should have received a copy of the GNU General Public License 
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- *  
- *  Version:           3.1
- *  Design:            David Gascón 
- *  Implementation:    Carlos Bello
- */
 
 #include <WaspSensorEvent_v30.h>
 
 uint8_t value = 0;
 
-/*
- * Define object for sensor. Choose board socket. 
- * Waspmote OEM. Possibilities for this sensor:
- *  - SOCKET_1 
- *  - SOCKET_2
- *  - SOCKET_3
- *  - SOCKET_4
- *  - SOCKET_6
- * P&S! Possibilities for this sensor:
- *  - SOCKET_A
- *  - SOCKET_C
- *  - SOCKET_D
- *  - SOCKET_E
- */
 pirSensorClass pir(SOCKET_1);
+
+float temp;
+float luxes;
+uint32_t digitalLuxes;
 
 void setup() 
 {
@@ -130,7 +95,19 @@ void loop()
     // stabilization to generate a new interruption
     // Read the sensor level
     value = pir.readPirSensor();
+    temp = Events.getTemperature();
+    digitalLuxes = Events.getLuxes(INDOOR);
 
+    if(temp>=22){
+      USB.println(F("Encender el aire acondicionado"));
+    }
+
+    USB.println(digitalLuxes);
+
+    if(digitalLuxes<4000000000){
+      USB.println(F("Encender las luces"));
+    }
+    
     while (value == 1)
     {
       USB.println(F("...wait for PIR stabilization"));
