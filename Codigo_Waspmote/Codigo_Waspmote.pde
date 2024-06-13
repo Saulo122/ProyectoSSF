@@ -8,6 +8,11 @@ pirSensorClass pir(SOCKET_1);
 float temp;
 float luxes;
 uint32_t digitalLuxes;
+char HTTP_SERVER[] = "test.mosquitto.org";
+uint16_t HTTP_PORT = 1883;
+uint8_t error;
+uint8_t status;
+unsigned long previous;
 
 void setup() 
 {
@@ -29,6 +34,49 @@ void setup()
   
   // Enable interruptions from the board
   Events.attachInt();
+
+  error = WIFI_PRO_V3.ON(socket);
+
+  if(error == 0){
+    USB.println(F("1. WiFi switched ON"));
+  }
+  else{
+    USB.prinln(F("1. WiFi did not initialize correctly"));
+  }
+
+  previous = millis();
+
+  status = WIFI_PRO_V3.isConnected();
+
+  if(status == true){
+    USB.println(F("2.WiFi is connected OK"));
+
+    USB.print(F("IP address: "));
+    USB.println(WIFI_PRO_V3._ip);
+
+    USB.print(F("GW address: "));
+    USB.println(WIFI_PRO_V3._gw);
+
+    USB.print(F("Netmask address: "));
+    USB.println(WIFI_PRO_V3._netmask);
+
+    USB.print(F("Time(ms): "));
+    USB.println(millis() - previous);
+  }
+  else{
+    USB.print(F("2. Wifi is connected ERROR"));
+    USB.print(F("Time (ms): "));
+    USB.println(millis() - previous);
+    PWR.reboot();
+  }
+
+  error = WIFI_PRO_V3.mqttConfiguration(HTTP_SERVER, "user", HTTP_PORT, WaspWIFI_v3::MQTT_TLS_DISABLED);
+  if(error == 0){
+    USB.println(F("3. MQTT connection configured"));
+  }
+  else{
+    USB.print(F("3. MQTT connection configured ERROR"));
+  }
 }
 
 void loop() 
@@ -121,6 +169,27 @@ void loop()
     // Enable interruptions from the board
     Events.attachInt();
   }
-  
+
+  error = WIFI_PRO_V3.ON(socket);
+
+  if(error == 0){
+    USB.println(F("1. WiFi switched ON"));
+  }
+  else{
+    USB.prinln(F("1. WiFi did not initialize correctly"));
+  }
+
+  error = WIFI_PRO_V3.mqttPublishTopic("myTopic", WaspWIFI_v3::QOS_1, WaspWIFI_v3::RETAINED, "Temp:17");
+
+  if(error == 0){
+    USB.println(F("Publish topi done!"));
+  }
+  else{
+    USB.println(F("Error publisching topic!"));
+  }
+
+  WIFI_PRO_V3.OFF(socket);
+
+  delay(10000);
 }
 
